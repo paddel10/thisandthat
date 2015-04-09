@@ -1,0 +1,25 @@
+
+
+// get server time from http://thetvdb.com/api/Updates.php?type=none
+
+// loop series start
+//// get episodes from http://thetvdb.com/api/943427ABE9E6FBB3/series/<seriesid>/all/en.zip
+- example: http://thetvdb.com/api/943427ABE9E6FBB3/series/80337/all/en.zip
+- unzip en.zip
+- parse enclosed en.xml and get episodes
+http://thetvdb.com/api/943427ABE9E6FBB3/series/80337/all/en.zip
+
+// loop <Episode> start
+<Data><Episode>
+<id>
+<seriesid>
+<seasonid>
+<SeasonNumber>
+<EpisodeNumber>
+<FirstAired>
+<EpisodeName>
+- update or insert episode
+
+// loop <Episode> end
+
+// loop series end
