@@ -36,8 +36,5 @@ sub retrieveSerieAsZip {
     $ua->default_headers(HTTP::Headers->new(Accept => '*/*'));
     $ua->agent("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_7_3) AppleWebKit/534.54.16 (KHTML, like Gecko) Version/5.1.4 Safari/534.54.16");
 
-    my $rc = getstore($url, $zipDest . ".zip");
-
-    if(is_error($rc)) {
-    }
+    return getstore($url, $zipDest . ".zip");
 }
