@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-package netUtils;
+package retrieveSeries;
 use strict;
 use vars qw(@ISA @EXPORT $VERSION);
 use Exporter;
