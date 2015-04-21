@@ -3,6 +3,7 @@
 use strict;
 
 use Getopt::Long;
+use Archive::Zip qw( :ERROR_CODES :CONSTANTS );
 use lib ".";
 use retrieveSeries;
 
@@ -26,6 +27,12 @@ if (0 > $ret) {
 } else {
   print $ret;
 }
+
+my $seriesZip = Archive::Zip->new();
+unless ( $seriesZip->read($ret) == AZ_OK) {
+  die 'read error';
+}
+$seriesZip->extractMember("en.xml");
 
 
 sub help {
