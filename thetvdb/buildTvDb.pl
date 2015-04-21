@@ -34,6 +34,19 @@ unless ( $seriesZip->read($ret) == AZ_OK) {
 }
 $seriesZip->extractMember("en.xml");
 
+## loop <Episode> start
+
+#<Data><Episode>
+#<id>
+#<seriesid>
+#<seasonid>
+#<SeasonNumber>
+#<EpisodeNumber>
+#<FirstAired>
+#<EpisodeName>
+#- update or insert episode
+
+## loop <Episode> end
 
 sub help {
   print <<HELP
