@@ -27,7 +27,6 @@ if (0 > $ret) {
   print $ret;
 }
 
-print "\ndone\n";
 
 sub help {
   print <<HELP
