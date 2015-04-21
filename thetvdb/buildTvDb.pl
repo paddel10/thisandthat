@@ -22,6 +22,7 @@ print "Retrieving serie id = " . $seriesId . " ... ";
 my $ret = retrieveSerieAsZip($seriesId, $apiKey, $zipDest);
 if (0 > $ret) {
   print "failed (" . $ret . ")";
+  exit $ret;
 } else {
   print $ret;
 }
