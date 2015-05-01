@@ -34,19 +34,20 @@ GetOptions("apiKey=s" => \$apiKey,
 help() if ($help or !$apiKey or !$seriesId);
 
 print "Retrieving serie id = " . $seriesId . " ... ";
-my $ret = retrieveSerieAsZip($seriesId, $apiKey, $zipDest);
-if (0 > $ret) {
-  print "failed (" . $ret . ")";
-  exit $ret;
+my $zipFile = retrieveSerieAsZip($seriesId, $apiKey, $zipDest);
+if (0 > $zipFile) {
+  print "failed (" . $zipFile . ")";
+  exit $zipFile;
 } else {
-  print $ret;
+  print $zipFile;
 }
 
+print "Unpacking ...";
 my $seriesZip = Archive::Zip->new();
-unless ( $seriesZip->read($ret) == AZ_OK) {
-  die 'read error';
-}
-$seriesZip->extractMember("en.xml");
+my $status = $seriesZip->read($zipFile);
+die "read error" if ($status != AZ_OK);
+$status = $seriesZip->extractMember("en.xml");
+die "could not extract en.xml" if ($status != AZ_OK);
 
 ## loop <Episode> start
 
