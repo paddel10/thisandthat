@@ -20,6 +20,8 @@ use Getopt::Long;
 use Archive::Zip qw( :ERROR_CODES :CONSTANTS );
 use lib ".";
 use retrieveSeries;
+use XML::LibXML;
+use Data::Dumper;
 
 my $apiKey;
 my $seriesId;
@@ -33,35 +35,59 @@ GetOptions("apiKey=s" => \$apiKey,
 
 help() if ($help or !$apiKey or !$seriesId);
 
+print "Retrieve server time ... ";
+my $serverTime = retrieveServerTime();
+if (0 > $serverTime) {
+  print "failed to retrieve server time (" . $serverTime . ")";
+  exit $serverTime;
+}
+
+my $xml = XML::LibXML->new() or die "could not create XML object";
+my $parsed_xml = $xml->parse_string($serverTime) or die "could not parse XML object";
+$serverTime = $parsed_xml->findnodes("/Items/Time");
+print $serverTime . "\n";
+
 print "Retrieving serie id = " . $seriesId . " ... ";
 my $zipFile = retrieveSerieAsZip($seriesId, $apiKey, $zipDest);
 if (0 > $zipFile) {
   print "failed (" . $zipFile . ")";
   exit $zipFile;
-} else {
-  print $zipFile;
 }
 
-print "Unpacking ...";
+print $zipFile;
+
+print "\nUnpacking ... ";
 my $seriesZip = Archive::Zip->new();
 my $status = $seriesZip->read($zipFile);
 die "read error" if ($status != AZ_OK);
 $status = $seriesZip->extractMember("en.xml");
 die "could not extract en.xml" if ($status != AZ_OK);
 
-## loop <Episode> start
+print "parsing ...\n";
+my $xml = XML::LibXML->new() or die "could not create XML object";
+my $parsed_xml = $xml->parse_file("en.xml") or die "could not parse XML object";
 
-#<Data><Episode>
-#<id>
-#<seriesid>
-#<seasonid>
-#<SeasonNumber>
-#<EpisodeNumber>
-#<FirstAired>
-#<EpisodeName>
-#- update or insert episode
+my $episodes = "/Data/Episode";
 
-## loop <Episode> end
+for my $episode ($parsed_xml->findnodes($episodes)) {
+  my $ep_seriesId = $episode->findnodes('./seriesid');
+  my $ep_id = $episode->findnodes('./id');
+  my $ep_seasonId = $episode->findnodes('./seasonid');
+  my $ep_seasonNumber = $episode->findnodes('./SeasonNumber');
+  my $ep_episodeNumber = $episode->findnodes('./EpisodeNumber');
+  my $ep_firstAired = $episode->findnodes('./FirstAired');
+  my $ep_episodeName = $episode->findnodes('./EpisodeName');
+
+  # update or insert episode
+  print $ep_seriesId . "|" . $ep_id . "|" . "S" . sprintf("%02d", $ep_seasonNumber) . "E" . sprintf("%02d", $ep_episodeNumber) . "|" . $ep_firstAired . "|" . $ep_episodeName . "\n";
+}
+
+
+
+unlink $zipFile;
+unlink "en.xml";
+
+print "\n";
 
 sub help {
   print <<HELP

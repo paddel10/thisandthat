@@ -20,14 +20,14 @@ use vars qw(@ISA @EXPORT $VERSION);
 use Exporter;
 
 @ISA     = qw(Exporter);
-@EXPORT  = qw(&retrieveSerieAsZip);
+@EXPORT  = qw(&retrieveSerieAsZip &retrieveServerTime);
 $VERSION = 1.00;
 
 use warnings;
 use Data::Dumper;
 use File::Basename;
 use File::Spec;
-use LWP::Simple qw($ua getstore is_error);
+use LWP::Simple qw($ua getstore get is_error);
 use URI;
 use Cwd;
 
@@ -60,4 +60,20 @@ sub retrieveSerieAsZip {
     my $ret = getstore($url, $zipDest);
     return (0-$ret) if (is_error($ret));
     return $zipDest;
+}
+
+#-----------------------------------------------------------------------
+# @functionName     retrieveServerTime
+# @description      Retrieve server time from thetvdb.com
+# @return           fail: negative error number of get()
+#                   success: server time as XML structure
+#-----------------------------------------------------------------------
+sub retrieveServerTime {
+    my $url = URI->new("http://thetvdb.com/api/Updates.php?type=none");
+
+    $ua->default_headers(HTTP::Headers->new(Accept => '*/*'));
+    $ua->agent("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_7_3) AppleWebKit/534.54.16 (KHTML, like Gecko) Version/5.1.4 Safari/534.54.16");
+    my $ret = get($url);
+    return (0-$ret) if (is_error($ret));
+    return $ret;
 }
