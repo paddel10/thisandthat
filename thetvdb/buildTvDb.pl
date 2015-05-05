@@ -25,12 +25,10 @@ use Data::Dumper;
 
 my $apiKey;
 my $seriesId;
-my $zipDest;
 my $help;
 
 GetOptions("apiKey=s" => \$apiKey,
            "seriesId=i" => \$seriesId,
-           "zipDest=s" => \$zipDest,
            "help|?|h" => \$help) or die("Error in command line arguments\n");
 
 help() if ($help or !$apiKey or !$seriesId);
@@ -48,7 +46,7 @@ $serverTime = $parsed_xml->findnodes("/Items/Time");
 print $serverTime . "\n";
 
 print "Retrieving serie id = " . $seriesId . " ... ";
-my $zipFile = retrieveSerieAsZip($seriesId, $apiKey, $zipDest);
+my $zipFile = retrieveSerieAsZip($seriesId, $apiKey);
 if (0 > $zipFile) {
   print "failed (" . $zipFile . ")";
   exit $zipFile;
@@ -67,9 +65,7 @@ print "parsing ...\n";
 my $xml = XML::LibXML->new() or die "could not create XML object";
 my $parsed_xml = $xml->parse_file("en.xml") or die "could not parse XML object";
 
-my $episodes = "/Data/Episode";
-
-for my $episode ($parsed_xml->findnodes($episodes)) {
+for my $episode ($parsed_xml->findnodes("/Data/Episode")) {
   my $ep_seriesId = $episode->findnodes('./seriesid');
   my $ep_id = $episode->findnodes('./id');
   my $ep_seasonId = $episode->findnodes('./seasonid');
@@ -83,11 +79,12 @@ for my $episode ($parsed_xml->findnodes($episodes)) {
 }
 
 
-
+# cleanup
+print "cleanup ... ";
 unlink $zipFile;
 unlink "en.xml";
 
-print "\n";
+print "finished.\n";
 
 sub help {
   print <<HELP
@@ -101,9 +98,6 @@ $0 [options]
 options:
   -apiKey <tvDbAPIKey>      API key for accessing thetvdb.com content
   -seriesId <seriesId>      Id of the serie as integer
-  -zipDest <path/filename>  (optional) path/filename with no suffix where to
-                            store the zip file. Current directory/seriesId is
-                            used if this option is omitted.
   -h|help|?                 (optional) This page
 
 HELP
