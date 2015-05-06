@@ -78,7 +78,6 @@ for my $episode ($parsed_xml->findnodes("/Data/Episode")) {
   print $ep_seriesId . "|" . $ep_id . "|" . "S" . sprintf("%02d", $ep_seasonNumber) . "E" . sprintf("%02d", $ep_episodeNumber) . "|" . $ep_firstAired . "|" . $ep_episodeName . "\n";
 }
 
-
 # cleanup
 print "cleanup ... ";
 unlink $zipFile;
