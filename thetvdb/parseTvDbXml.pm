@@ -19,16 +19,19 @@ use strict;
 #use warnings;
 use Template;
 use CGI ':standard';
+use lib ".";
+use retrieveSeries;
 
 my $VERSION = 1.00;
 
 sub new {
   my $classname = shift;
   my $self = {
-    ROWS                  => 1
+    DEBUG => 0
   };
-  $self->{table_html_loop} = (); # list contains the row entries
-  
+
+  $self->xml = XML::LibXML->new() or die "could not create XML object";
+
   bless($self, $classname);
 
   if(scalar(@_) % 2 == 0) {
@@ -52,9 +55,51 @@ sub version {
   return $VERSION;
 }
 
+##
+#
+#
+##
+sub getServerTime {
+  my($self) = shift;
+  my $serverTime = retrieveServerTime();
+  die "failed to retrieve server time (" . $serverTime . ")" if (0 > $serverTime);
+
+  my $parsed_xml = $self->{xml}->parse_string($serverTime) or die "could not parse XML object";
+  return $parsed_xml->findnodes("/Items/Time");
+}
+
+##
+#
+#
+##
+sub retrieveSerieAsZip {
+  my($self) = shift;
+  my($seriesId, $apiKey) = @_;
+  my $zipFile = retrieveSerieAsZip($seriesId, $apiKey);
+  die "failed (" . $zipFile . ")" if (0 > $zipFile);
+  return $zipFile;
+}
+
+sub parseFile {
+
+}
+
+sub parseString {
+
+}
+
 sub someFct {
   my($self) = shift;
   if (scalar(@_) % 2 == 0) {
     # get the paramters, which are given as a hash
   }
+}
+
+sub print_debug
+{
+  my($self, $line) = @_;
+  my $subname = (caller(1))[3];
+  $subname =~ s/\w+::(\w+)/$1/; # remove package name
+  return if ($self->{DEBUG} !~ /$subname/);
+  print "$subname: $line" .  $self->{line_ending};
 }
