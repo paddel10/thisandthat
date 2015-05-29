@@ -17,8 +17,9 @@ package parseTvDbXml;
 
 use strict;
 #use warnings;
-use Template;
-use CGI ':standard';
+use Archive::Zip qw( :ERROR_CODES :CONSTANTS );
+use XML::LibXML;
+use Data::Dumper;
 use lib ".";
 use retrieveSeries;
 
@@ -27,26 +28,14 @@ my $VERSION = 1.00;
 sub new {
   my $classname = shift;
   my $self = {
-    DEBUG => 0
+    DEBUG => 0,
+    xml => undef
   };
 
-  $self->xml = XML::LibXML->new() or die "could not create XML object";
+  $self->{xml} = XML::LibXML->new() or die "could not create XML object";
 
   bless($self, $classname);
 
-  if(scalar(@_) % 2 == 0) {
-    # get the paramters, which are given as a hash
-    my %hashargs = @_;
-    foreach my $key(keys %hashargs) {
-      if(exists $self->{$key}) {
-        $self->{$key} = $hashargs{$key};
-      } else {
-        print_debug($self, "Parameter $key isn't supported.") if $self->{DEBUG};
-      }
-    }
-  } else {
-    print_debug($self, "Missing or ambiguous arguments.") if $self->{DEBUG};
-  }
   return $self;
 }
 
@@ -56,7 +45,9 @@ sub version {
 }
 
 ##
+# Retrieve server time of thetvdb.com
 #
+# @return server time
 #
 ##
 sub getServerTime {
@@ -69,37 +60,67 @@ sub getServerTime {
 }
 
 ##
+# Retrieves information of given series and returns it as list
 #
+# @param seriesId id of series
+# @param apiKey api key to access service
+# @return list containing information about series. Every item is a list containing
+# the following items: seriesId, seasonId, episodeId, seasonNumber, episodeNumber,
+# firstAired, episodeName
 #
 ##
-sub retrieveSerieAsZip {
+sub retrieveSerie {
   my($self) = shift;
   my($seriesId, $apiKey) = @_;
+
+  # get zip file
   my $zipFile = retrieveSerieAsZip($seriesId, $apiKey);
   die "failed (" . $zipFile . ")" if (0 > $zipFile);
-  return $zipFile;
-}
 
-sub parseFile {
+  # unpack
+  my $seriesZip = Archive::Zip->new();
+  my $status = $seriesZip->read($zipFile);
+  die "read error" if ($status != AZ_OK);
+  $status = $seriesZip->extractMember("en.xml");
+  die "could not extract en.xml" if ($status != AZ_OK);
 
-}
+  # parse
+  my $parsed_xml = $self->{xml}->parse_file("en.xml") or die "could not parse XML object";
 
-sub parseString {
-
-}
-
-sub someFct {
-  my($self) = shift;
-  if (scalar(@_) % 2 == 0) {
-    # get the paramters, which are given as a hash
+  my @series_list = ();
+  for my $episode ($parsed_xml->findnodes("/Data/Episode")) {
+    my $ep_seriesId = $episode->findnodes('./seriesid')->string_value();
+    my $ep_seasonId = $episode->findnodes('./seasonid')->string_value();
+    my $ep_id = $episode->findnodes('./id')->string_value();
+    my $ep_seasonNumber = $episode->findnodes('./SeasonNumber')->string_value();
+    my $ep_episodeNumber = $episode->findnodes('./EpisodeNumber')->string_value();
+    my $ep_firstAired = $episode->findnodes('./FirstAired')->string_value();
+    my $ep_episodeName = $self->trim($episode->findnodes('./EpisodeName')->string_value());
+    
+    my @episode_list = (
+      $ep_seriesId,
+      $ep_seasonId,
+      $ep_id,
+      $ep_seasonNumber,
+      $ep_episodeNumber,
+      $ep_firstAired,
+      $ep_episodeName
+    );
+    push(@series_list, [ @episode_list ]);
   }
+
+  # cleanup
+  unlink $zipFile;
+  unlink "en.xml";
+
+  return @series_list;
 }
 
-sub print_debug
-{
-  my($self, $line) = @_;
-  my $subname = (caller(1))[3];
-  $subname =~ s/\w+::(\w+)/$1/; # remove package name
-  return if ($self->{DEBUG} !~ /$subname/);
-  print "$subname: $line" .  $self->{line_ending};
-}
+sub  trim {
+  my($self) = shift;
+  my($s) = shift;
+  $s =~ s/^\s+|\s+$//g;
+  return $s
+};
+
+
