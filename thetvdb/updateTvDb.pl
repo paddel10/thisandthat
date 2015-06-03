@@ -37,3 +37,24 @@ http://thetvdb.com/api/<api-key>/series/294332/en.xml
 http://thetvdb.com/api/<api-key>/episodes/4239317/en.xml
 
 # Record <previoustime> for next update
+
+sub help {
+  print <<HELP
+
+Script downloads information from http://www.thetvdb.com about updated series
+after a given time.
+The downloaded ZIP file is extracted and the XML file parsed in order to
+retrieve the updated episodes from the serie.
+
+$0 [options]
+
+options:
+  -apiKey <tvDbAPIKey>      API key for accessing thetvdb.com content
+  -serverTime <time>        Time in milliseconds
+  -header                   (optional) If set, column header is printed
+  -h|help|?                 (optional) This page
+
+HELP
+;
+  exit 0;
+}
