@@ -16,27 +16,32 @@
 
 use strict;
 use Getopt::Long;
+use lib ".";
+use parseTvDbXml;
+use retrieveSeries;
 
 my $apiKey;
-my $serverTime;
 my $help;
 
 GetOptions("apiKey=s" => \$apiKey,
-           "serverTime=s" => \$serverTime
            "help|?|h" => \$help) or die("Error in command line arguments\n");
 
-help() if ($help or !$apiKey or !$seriesId);
+help() if ($help or !$apiKey);
+
+my $parser = new parseTvDbXml();
 
 # Get a list of all series and episode updates
-http://thetvdb.com/api/Updates.php?type=all&time=<previoustime>
+print $parser->retrieveSerieEpisodeDayUpdates($apiKey);
 
 # Update each series in the update XML
-http://thetvdb.com/api/<api-key>/series/294332/en.xml
+# http://thetvdb.com/api/<api-key>/series/294332/en.xml
 
 # Update each episode in the update XML
-http://thetvdb.com/api/<api-key>/episodes/4239317/en.xml
+# http://thetvdb.com/api/<api-key>/episodes/4239317/en.xml
 
 # Record <previoustime> for next update
+
+print "\ndone\n";
 
 sub help {
   print <<HELP
@@ -50,7 +55,6 @@ $0 [options]
 
 options:
   -apiKey <tvDbAPIKey>      API key for accessing thetvdb.com content
-  -serverTime <time>        Time in milliseconds
   -header                   (optional) If set, column header is printed
   -h|help|?                 (optional) This page
 

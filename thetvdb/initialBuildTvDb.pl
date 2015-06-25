@@ -43,7 +43,8 @@ print $serverTime . "\n";
 
 print "Retrieve serie ... \n" if ($verbose);
 print "seriesId|seasonId|episodeId|seasonNr|episodeNr|airdate|episodeName\n" if ($header);
-my @serie_list = $parser->retrieveSerie($seriesId, $apiKey);
+
+my @serie_list = $parser->retrieveSerie2($seriesId, $apiKey, "/Data/Episode", ('./seriesid', './seasonid', './id', './SeasonNumber', './EpisodeNumber', './FirstAired', './EpisodeName'));
 
 binmode(STDOUT, ":utf8"); # prevent warning: "Wide character in print"
 for my $episode_list_ref (@serie_list) {

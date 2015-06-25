@@ -20,7 +20,7 @@ use vars qw(@ISA @EXPORT $VERSION);
 use Exporter;
 
 @ISA     = qw(Exporter);
-@EXPORT  = qw(&retrieveSerieAsZip &retrieveServerTime);
+@EXPORT  = qw(&retrieveSerieAsZip &retrieveServerTime &retrieveDayUpdates);
 $VERSION = 1.00;
 
 use warnings;
@@ -69,7 +69,40 @@ sub retrieveSerieAsZip {
 #                   success: server time as XML structure
 #-----------------------------------------------------------------------
 sub retrieveServerTime {
-    my $url = URI->new("http://thetvdb.com/api/Updates.php?type=none");
+    return retrieveContent("http://thetvdb.com/api/Updates.php?type=none");
+}
+
+#-----------------------------------------------------------------------
+# @functionName     retrieveDayUpdates
+# @description      Retrieve updates of the last 24 hours
+# @return           fail: negative error number of get()
+#                   success: updates as XML structure
+#-----------------------------------------------------------------------
+sub retrieveDayUpdates {
+    my($apiKey) = @_;
+    return retrieveContent(sprintf("http://thetvdb.com/api/%s/updates/updates_day.xml", $apiKey));
+}
+#-----------------------------------------------------------------------
+# @functionName     retrieveUpdates
+# @description      Retrieve updates since last server time
+# @return           fail: negative error number of get()
+#                   success: server time as XML structure
+#-----------------------------------------------------------------------
+#sub retrieveUpdates {
+#    my($serverTime) = @_;
+#    return retrieveContent(sprintf("http://thetvdb.com/api/Updates.php?type=all&time=%d", $serverTime));
+#}
+
+#-----------------------------------------------------------------------
+# @functionName     retrieveContent
+# @description      Generic retrieval
+# @return           fail: negative error number of get()
+#                   success: server time as XML structure
+#-----------------------------------------------------------------------
+sub retrieveContent {
+    my $b = shift;
+    print $b;
+    my $url = URI->new($b);
 
     $ua->default_headers(HTTP::Headers->new(Accept => '*/*'));
     $ua->agent("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_7_3) AppleWebKit/534.54.16 (KHTML, like Gecko) Version/5.1.4 Safari/534.54.16");

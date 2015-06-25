@@ -111,9 +111,61 @@ sub retrieveSerie {
 
   # cleanup
   unlink $zipFile;
+  #unlink "en.xml";
+
+  return @series_list;
+}
+
+sub retrieveSerie2 {
+  my($self) = shift;
+  my($seriesId, $apiKey, $loopNode, @nodes) = @_;
+
+  # get zip file
+  my $zipFile = retrieveSerieAsZip($seriesId, $apiKey);
+  die "failed (" . $zipFile . ")" if (0 > $zipFile);
+
+  # unpack
+  my $seriesZip = Archive::Zip->new();
+  my $status = $seriesZip->read($zipFile);
+  die "read error" if ($status != AZ_OK);
+  $status = $seriesZip->extractMember("en.xml");
+  die "could not extract en.xml" if ($status != AZ_OK);
+
+  # parse
+  my $parsed_xml = $self->{xml}->parse_file("en.xml") or die "could not parse XML object";
+
+  my @series_list = ();
+  for my $episode ($parsed_xml->findnodes($loopNode)) {
+    my @episode_list = ();
+    for my $node (@nodes) {
+      push(@episode_list, $self->trim($episode->findnodes($node)->string_value()));
+    }
+    push(@series_list, [ @episode_list ]);
+  }
+
+  # cleanup
+  unlink $zipFile;
   unlink "en.xml";
 
   return @series_list;
+}
+
+sub retrieveSerieEpisodeDayUpdates {
+  my($self) = shift;
+  my($apiKey) = shift;
+  my $updates = retrieveDayUpdates($apiKey);
+  
+  my $parsed_xml = $self->{xml}->parse_string($updates) or die "could not parse XML object";
+  print "Dumper: \n";
+  for my $item ($parsed_xml->findnodes("/Data")) {
+    for my $serie ($item->findnodes("./Series")) {
+      print "serieId: " . $serie->findnodes("./id")->string_value() . "\n";
+    }
+    for my $episode ($item->findnodes("./Episode")) {
+      print "episodeId: " . $episode->findnodes("./id")->string_value() . ", " . $episode->findnodes("./Series")->string_value() . "\n";
+    }
+  }
+  
 }
 
 sub  trim {
