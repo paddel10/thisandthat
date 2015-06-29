@@ -101,7 +101,7 @@ sub retrieveDayUpdates {
 #-----------------------------------------------------------------------
 sub retrieveContent {
     my $b = shift;
-    print $b;
+
     my $url = URI->new($b);
 
     $ua->default_headers(HTTP::Headers->new(Accept => '*/*'));
