@@ -15,9 +15,6 @@
 * You should have received a copy of the GNU General Public License
 * along with thetvdb. If not, see <http://www.gnu.org/licenses/>.
 * -----------------------------------------------------------------------------
-* Script downloads information about a given serie from http://www.thetvdb.com.
-* The downloaded ZIP file is extracted and the XML file parsed in order to
-* retrieve the episodes from the serie.
 **/
 include_once("tvDbParser.php");
 
@@ -25,24 +22,21 @@ $shortopts = "h";
 
 $longopts = array(
   "help",
-  "apiKey:",
-  "seriesId:"
+  "apiKey:"
 );
 
 $options = getopt($shortopts, $longopts);
 
 if (array_key_exists("help", $options) ||
     array_key_exists("h", $options) ||
-    !array_key_exists("apiKey", $options) ||
-    !array_key_exists("seriesId", $options)) {
+    !array_key_exists("apiKey", $options)) {
   help();
 }
 
-$ret = retrieveSeriesById($options['apiKey'], $options['seriesId']);
-if ($ret) {
-  $episodes = parseEpisodeXml('en.xml');
-  foreach ($episodes as $episode) {
-    print sprintf("INSERT INTO tv2_episode (id, FirstAired, SeasonNumber, EpisodeNumber, EpisodeName, seriesId) VALUES (%s, '%s', %s, %s, '%s', %s);\n", $episode['id'], $episode['FirstAired'], $episode['SeasonNumber'], $episode['EpisodeNumber'], $episode['EpisodeName'], $episode['seriesid']);
+if (retrieveDailyUpdate($options['apiKey'])) {
+  $seriesUpdate = parseDailyUpdateXml('dailyUpdate.xml');
+  foreach ($seriesUpdate as $seriesId) {
+    print $seriesId . "\n";
   }
 }
 
@@ -52,19 +46,18 @@ function help() {
   $filename = basename(__FILE__);
   print <<<EOT
 
-Script downloads information about a given serie from http://www.thetvdb.com.
+Script downloads information from http://www.thetvdb.com about updated series
+after a given time.
 The downloaded ZIP file is extracted and the XML file parsed in order to
-retrieve the episodes from the serie.
+retrieve the updated episodes from the serie.
 
 $filename [options]
 
 options:
   -apiKey <tvDbAPIKey>      API key for accessing thetvdb.com content
-  -seriesId <seriesId>      Id of the serie as integer
-  -h|help|?                 (optional) This page  
+  -h|help|?                 (optional) This page
 EOT;
 
   exit;
 }
-
 ?>
