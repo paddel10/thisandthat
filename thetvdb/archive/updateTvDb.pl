@@ -30,7 +30,7 @@ help() if ($help or !$apiKey);
 
 my $parser = new parseTvDbXml();
 
-# Get a list of all series and episode updates
+# Get a list of all series and episode updates from the last 24h
 print $parser->retrieveSerieEpisodeDayUpdates($apiKey);
 
 # Update each series in the update XML

@@ -15,7 +15,7 @@
 # along with thetvdb. If not, see <http://www.gnu.org/licenses/>.
 # -----------------------------------------------------------------------------
 # Script is used for retrieving series information in a batch. It calls the
-# php script initialBuildTvDb.php. Series IDs are provided in a seperate file. Each
+# perl script buildTvDb.pl. Series IDs are provided in a seperate file. Each
 # line holds the ID of a serie. Lines starting with a pound (#) sign are skipped.
 
 if [ "$#" -ne 2 ]; then
@@ -25,13 +25,15 @@ fi
 
 API_KEY=$1
 SERIES_ID_LIST_FILE=$2
+HEADER="-header"
 
 while read SERIES_ID
 do
     if ! [[ "$SERIES_ID" =~ ^# ]]; then
-        perl initialBuildTvDb.php --apiKey ${API_KEY} --seriesId ${SERIES_ID}
+        perl buildTvDb.pl -apiKey ${API_KEY} -seriesId ${SERIES_ID} ${HEADER}
         if [ $? -ne 0 ] ; then
             exit;
         fi
+        HEADER=
     fi
 done <${SERIES_ID_LIST_FILE}
