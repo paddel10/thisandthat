@@ -21,28 +21,36 @@
 **/
 include_once("tvDbParser.php");
 
-$shortopts = "h";
+$shortopts = "h::a:s:";
 
 $longopts = array(
-  "help",
+  "help::",
   "apiKey:",
   "seriesId:"
 );
 
 $options = getopt($shortopts, $longopts);
 
-if (array_key_exists("help", $options) ||
-    array_key_exists("h", $options) ||
-    !array_key_exists("apiKey", $options) ||
-    !array_key_exists("seriesId", $options)) {
+if (array_key_exists("help", $options) || array_key_exists("h", $options) ||
+    !(array_key_exists("apiKey", $options) || array_key_exists("a", $options)) ||
+    !(array_key_exists("seriesId", $options) || array_key_exists("s", $options))) {
   help();
 }
 
-$ret = retrieveSeriesById($options['apiKey'], $options['seriesId']);
+$apiKey = (array_key_exists("apiKey", $options) ? $options['apiKey'] : $options['a']);
+$seriesId = (array_key_exists("seriesId", $options) ? $options['seriesId'] : $options['s']);
+
+$ret = retrieveSeriesById($apiKey, $seriesId);
 if ($ret) {
   $episodes = parseEpisodeXml('en.xml');
   foreach ($episodes as $episode) {
-    print sprintf("INSERT INTO tv2_episode (id, FirstAired, SeasonNumber, EpisodeNumber, EpisodeName, seriesId) VALUES (%s, '%s', %s, %s, '%s', %s);\n", $episode['id'], $episode['FirstAired'], $episode['SeasonNumber'], $episode['EpisodeNumber'], $episode['EpisodeName'], $episode['seriesid']);
+    print sprintf("INSERT INTO tv2_episode (id, seriesId, FirstAired, SeasonNumber, EpisodeNumber, EpisodeName) VALUES (%s, %s, '%s', %s, %s, '%s');\n", 
+      $episode['id'],
+      $episode['seriesid'],
+      $episode['FirstAired'],
+      $episode['SeasonNumber'],
+      $episode['EpisodeNumber'],
+      addslashes($episode['EpisodeName']));
   }
 }
 
@@ -59,9 +67,13 @@ retrieve the episodes from the serie.
 $filename [options]
 
 options:
-  -apiKey <tvDbAPIKey>      API key for accessing thetvdb.com content
-  -seriesId <seriesId>      Id of the serie as integer
-  -h|help|?                 (optional) This page  
+  -a <tvDbAPIKey>             API key for accessing thetvdb.com content
+  --apiKey <tvDbAPIKey>
+  -s <seriesId>               Id of the serie as integer
+  --seriesId <seriesId>
+  -h                          (optional) This page
+  --help
+
 EOT;
 
   exit;
