@@ -44,7 +44,7 @@ $ret = retrieveSeriesById($apiKey, $seriesId);
 if ($ret) {
   $episodes = parseEpisodeXml('en.xml');
   foreach ($episodes as $episode) {
-    print sprintf("INSERT INTO tv2_episode (id, seriesId, FirstAired, SeasonNumber, EpisodeNumber, EpisodeName) VALUES (%s, %s, '%s', %s, %s, '%s');\n", 
+    print sprintf("INSERT INTO tv2_episode (id, tvdb_seriesId, firstAired, season, episode, episode_title) VALUES (%s, %s, '%s', %s, %s, '%s');\n", 
       $episode['id'],
       $episode['seriesid'],
       $episode['FirstAired'],
