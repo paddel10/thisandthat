@@ -29,7 +29,7 @@ SERIES_ID_LIST_FILE=$2
 while read SERIES_ID
 do
     if ! [[ "$SERIES_ID" =~ ^# ]]; then
-        perl initialBuildTvDb.php --apiKey ${API_KEY} --seriesId ${SERIES_ID}
+        php initialBuildTvDb.php --apiKey ${API_KEY} --seriesId ${SERIES_ID}
         if [ $? -ne 0 ] ; then
             exit;
         fi
